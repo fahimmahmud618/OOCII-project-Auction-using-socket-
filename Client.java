@@ -13,15 +13,16 @@ import static java.awt.Color.black;
 // by looping through it.
 
 public class Client implements ActionListener {
-    public Client()
-    {
 
-    }
-
+    public static int myAmount = 2000;
+    String Startbid = new String("m1");
     JFrame client1stFrame = new JFrame();
     JPanel panel1stFrame = new JPanel();
-    JLabel label11stFrame = new JLabel();
-    JButton button1stFrame = new JButton();
+
+    JLabel bidThingInfo = new JLabel();
+    JLabel myInfo = new JLabel();
+    JLabel bidInfo = new JLabel();
+    JButton buttonClaimbid = new JButton("Claim Bid");
     JTextField textField1stFrame = new JTextField();
 
     // A client has a socket to connect to the server and a reader and writer to receive and send messages respectively.
@@ -44,12 +45,18 @@ public class Client implements ActionListener {
     }
 
     // Sending a message isn't blocking and can be done without spawning a thread, unlike waiting for a message.
-    public void sendMessage() {
+    public void sendMsgOne(String msgToSend)
+    {
         try {
-            // Initially send the username of the client.
-            bufferedWriter.write(username);
+            bufferedWriter.write(msgToSend);
             bufferedWriter.newLine();
             bufferedWriter.flush();
+        } catch (IOException e) {
+            closeEverything(socket, bufferedReader, bufferedWriter);
+        }
+    }
+    public void sendMessage() {
+        try {
             // Create a scanner for user input.
             Scanner scanner = new Scanner(System.in);
             // While there is still a connection with the server, continue to scan the terminal and then send the message.
@@ -75,7 +82,20 @@ public class Client implements ActionListener {
                 while (socket.isConnected()) {
                     try {
                         // Get the messages sent from other users and print it to the console.
-                        msgFromGroupChat = bufferedReader.readLine();
+                        msgFromGroupChat = (String)bufferedReader.readLine();
+                        if(msgFromGroupChat.equals(Startbid))
+                        {
+                            clientPage();
+                        }
+                        if((msgFromGroupChat.charAt(0)=='n')&&(msgFromGroupChat.charAt(1)=='p'))
+                        {
+                            bidThingInfo.setText(msgFromGroupChat.substring(2));
+                        }
+                        if((msgFromGroupChat.charAt(0)=='b')&&(msgFromGroupChat.charAt(1)=='i'))
+                        {
+                            bidInfo.setText(msgFromGroupChat.substring(2));
+                        }
+
                         System.out.println(msgFromGroupChat);
                     } catch (IOException e) {
                         // Close everything gracefully.
@@ -109,16 +129,12 @@ public class Client implements ActionListener {
         }
     }
 
-    public void clientLoginPage()
+    public void clientPage()
     {
-        textField1stFrame.setPreferredSize(new Dimension(250,40));
-        panel1stFrame.add(label11stFrame);
-        label11stFrame.setText("Enter the name of your team");
-        panel1stFrame.add(textField1stFrame);
-
-        button1stFrame.setText("Submit");
-        panel1stFrame.add(button1stFrame);
-        button1stFrame.addActionListener(this);
+       panel1stFrame.add(myInfo);
+       panel1stFrame.add(bidThingInfo);
+       panel1stFrame.add(bidInfo);
+       panel1stFrame.add(buttonClaimbid);
 
         client1stFrame.add(panel1stFrame);
         client1stFrame.setTitle("IIT Auction");
@@ -129,45 +145,53 @@ public class Client implements ActionListener {
         client1stFrame.pack();
         client1stFrame.setVisible(true);
 
-        System.out.println("Username: "+username);
-
     }
     public void startClient(String username1) throws IOException {
-        Socket socket = new Socket("localhost", 1234);
 
-        // Pass the socket and give the client a username.
-        Client client = new Client(socket, username1);
-        // Infinite loop to read and send messages.
-        client.listenForMessage();
-        client.sendMessage();
     }
     // Run the program.
     public static void main(String[] args) throws IOException {
-
-        Client firdt = new Client();
-        firdt.clientLoginPage();
-
 
         // Get a username for the user and a socket connection.
         //Scanner scanner = new Scanner(System.in);
         //System.out.print("Enter your username for the group chat: ");
         //String username = scanner.nextLine();
+        String username = JOptionPane.showInputDialog(null,"Enter the name of your team","Your team name here");
         // Create a socket to connect to the server.
+        Socket socket = new Socket("localhost", 1234);
 
-        //System.out.println(username1);
+        // Pass the socket and give the client a username.
+        Client client = new Client(socket, username);
+        JOptionPane.showMessageDialog(null,"Please wait, the host will start auction shortly!","Information",JOptionPane.PLAIN_MESSAGE);
 
+        client.sendMsgOne(username);
+
+        // Infinite loop to read and send messages.
+        client.listenForMessage();
+        client.buttonClaimbid.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                client.sendMsgOne("cb");
+                myAmount = myAmount -100;
+                client.myInfo.setText(String.valueOf(client.myAmount));
+            }
+        });
+        //client.getResponse();
+        //client.sendMessage();
     }
 
+    void getResponse()
+    {
+        while (socket.isConnected())
+        {
+            buttonClaimbid.addActionListener(this);
+        }
+    }
     @Override
     public void actionPerformed(ActionEvent e) {
-        if(e.getSource()==button1stFrame)
+        /*if(e.getSource()==buttonClaimbid)
         {
-            username = textField1stFrame.getText();
-            try {
-                new Client().startClient(username);
-            } catch (IOException ex) {
-                ex.printStackTrace();
-            }
-        }
+            sendMsgOne("cb");
+        }*/
     }
 }
