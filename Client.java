@@ -88,6 +88,7 @@ public class Client implements ActionListener {
                         if(msgFromGroupChat.equals(Startbid))
                         {
                             clientPage();
+                            slider();
                         }
                         if((msgFromGroupChat.charAt(0)=='n')&&(msgFromGroupChat.charAt(1)=='p'))
                         {
@@ -99,12 +100,13 @@ public class Client implements ActionListener {
                         }
                         if((msgFromGroupChat.charAt(0)=='c')&&(msgFromGroupChat.charAt(1)=='b'))
                         {
-                           // counter=0;
-                            slider();
+                            counter=0;
+                            //slider();
                         }
                         if((msgFromGroupChat.charAt(0)=='d')&&(msgFromGroupChat.charAt(1)=='b'))
                         {
                             sendMsgOne("done bid for this player");
+                            counter=0;
                         }
 
                         System.out.println(msgFromGroupChat);
@@ -142,11 +144,11 @@ public class Client implements ActionListener {
 
     public void clientPage()
     {
-       panel1stFrame.add(myInfo);
-       panel1stFrame.add(bidThingInfo);
-       panel1stFrame.add(bidInfo);
-       panel1stFrame.add(buttonClaimbid);
-       panel1stFrame.add(slideBar);
+        panel1stFrame.add(myInfo);
+        panel1stFrame.add(bidThingInfo);
+        panel1stFrame.add(bidInfo);
+        panel1stFrame.add(buttonClaimbid);
+        panel1stFrame.add(slideBar);
 
         client1stFrame.add(panel1stFrame);
         client1stFrame.setTitle("IIT Auction");
@@ -198,20 +200,28 @@ public class Client implements ActionListener {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                counter=0;
-                while (counter<=150)
-                {
-                    slideBar.setValue(counter);
-                    try {
-                        Thread.sleep(50);
-                    } catch (InterruptedException e) {
-                        throw new RuntimeException(e);
+                while (true) {
+                    //counter = 0;
+                    while ((counter <= 150)&&(counter>=0)) {
+                        slideBar.setValue(counter);
+                        try {
+
+                            Thread.sleep(50);
+                        } catch (InterruptedException e) {
+                            throw new RuntimeException(e);
+                        }
+                        counter = counter + 1;
                     }
-                    counter = counter+1;
+                    if(counter==151)
+                    {
+                        sendMsgOne("db"+String.valueOf(myAmount));
+                        counter=-1;
+                    }
+
                 }
             }
         }).start();
-        sendMsgOne("db"+String.valueOf(myAmount));
+        //
     }
 
     void getResponse()
