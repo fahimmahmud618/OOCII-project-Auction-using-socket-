@@ -53,11 +53,11 @@ public class Server implements ActionListener {
                 //System.out.println("A new client has connected!");
                 sockets.add(socket);
                 //ClientHandler clientHandler = new ClientHandler(socket);
-               // Thread thread = new Thread(clientHandler);
+                // Thread thread = new Thread(clientHandler);
                 // The start method begins the execution of a thread.
                 // When you call start() the run method is called.
                 // The operating system schedules the threads.
-               // thread.start();
+                // thread.start();
                 if(start_bid)
                     break;
             }
@@ -74,6 +74,7 @@ public class Server implements ActionListener {
             Thread thread = new Thread(clientHandler);
             thread.start();
         }
+        new ClientHandler().broadcastMessageToAll("m1");
     }
 
     // Close the server socket gracefully.
