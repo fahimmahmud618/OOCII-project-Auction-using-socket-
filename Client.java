@@ -99,7 +99,7 @@ public class Client implements ActionListener {
                         }
                         if((msgFromGroupChat.charAt(0)=='c')&&(msgFromGroupChat.charAt(1)=='b'))
                         {
-                            counter=0;
+                           // counter=0;
                             slider();
                         }
                         if((msgFromGroupChat.charAt(0)=='d')&&(msgFromGroupChat.charAt(1)=='b'))
@@ -198,6 +198,7 @@ public class Client implements ActionListener {
         new Thread(new Runnable() {
             @Override
             public void run() {
+                counter=0;
                 while (counter<=150)
                 {
                     slideBar.setValue(counter);
@@ -208,11 +209,11 @@ public class Client implements ActionListener {
                     }
                     counter = counter+1;
                 }
-                sendMsgOne("db"+String.valueOf(myAmount));
             }
         }).start();
-
+        sendMsgOne("db"+String.valueOf(myAmount));
     }
+
     void getResponse()
     {
         while (socket.isConnected())
