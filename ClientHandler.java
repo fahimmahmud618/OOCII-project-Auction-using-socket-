@@ -1,4 +1,3 @@
-
 // 1. Open a socket.
 // 2. Open an input stream and output stream to the socket.
 // 3. Read from and write to the stream according to the server's protocol.
@@ -20,6 +19,10 @@ import java.util.ArrayList;
 
 // Runnable is implemented on a class whose instances will be executed by a thread.
 public class ClientHandler implements Runnable {
+    public ClientHandler()
+    {
+
+    }
 
     // Array list of all the threads handling clients so each message can be sent to the client the thread is handling.
     public static ArrayList<ClientHandler> clientHandlers = new ArrayList<>();
@@ -60,7 +63,7 @@ public class ClientHandler implements Runnable {
                 // Read what the client sent and then send it to every other client.
                 messageFromClient = bufferedReader.readLine();
                 System.out.println(messageFromClient);
-                broadcastMessage(messageFromClient);
+                        broadcastMessageToAll(messageFromClient);
             } catch (IOException e) {
                 // Close everything gracefully.
                 closeEverything(socket, bufferedReader, bufferedWriter);
@@ -81,6 +84,21 @@ public class ClientHandler implements Runnable {
                     clientHandler.bufferedWriter.newLine();
                     clientHandler.bufferedWriter.flush();
                 }
+            } catch (IOException e) {
+                // Gracefully close everything.
+                closeEverything(socket, bufferedReader, bufferedWriter);
+            }
+        }
+    }
+
+    public void broadcastMessageToAll(String messageToSend) {
+        for (ClientHandler clientHandler : clientHandlers) {
+            try {
+                // You don't want to broadcast the message to the user who sent it.
+                    clientHandler.bufferedWriter.write(messageToSend);
+                    clientHandler.bufferedWriter.newLine();
+                    clientHandler.bufferedWriter.flush();
+
             } catch (IOException e) {
                 // Gracefully close everything.
                 closeEverything(socket, bufferedReader, bufferedWriter);
