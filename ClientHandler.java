@@ -7,6 +7,7 @@
 import java.io.*;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.Scanner;
 
 /**
  * When a client connects the server spawns a thread to handle the client.
@@ -19,8 +20,29 @@ import java.util.ArrayList;
 
 // Runnable is implemented on a class whose instances will be executed by a thread.
 public class ClientHandler implements Runnable {
+    //public static ArrayList<ThingOfBid> thingOfBids = new ArrayList<>();
+    ThingOfBid[] thingOfBids  = new ThingOfBid[10];
+    public static int thingofbid_num = 0;
     public ClientHandler()
     {
+        File thingofbidinfo = new File("C:/Users/ASUS/IdeaProjects/IIT_Auction_1.0/src/thingofbidinfo.txt");
+
+        try {
+            Scanner filescanner = new Scanner(thingofbidinfo);
+            while (filescanner.hasNext())
+            {
+                String name = filescanner.next();
+                String description = filescanner.next();
+                //thingOfBids[thingofbid_num].Name = filescanner.next();
+                //thingOfBids[thingofbid_num].Description = filescanner.next();
+                //thingOfBids[thingofbid_num].minimum_price = Integer.parseInt(filescanner.next());
+                thingOfBids[thingofbid_num].Name= name;
+                thingOfBids[thingofbid_num].Description = description;
+                thingofbid_num++;
+            }
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
 
     }
 
@@ -56,6 +78,7 @@ public class ClientHandler implements Runnable {
     // A blocking operation means the caller waits for the callee to finish its operation.
     @Override
     public void run() {
+        int current_thingofbid_num =0;
         String messageFromClient;
         // Continue to listen for messages while a connection with the client is still established.
         while (socket.isConnected()) {
@@ -63,7 +86,19 @@ public class ClientHandler implements Runnable {
                 // Read what the client sent and then send it to every other client.
                 messageFromClient = bufferedReader.readLine();
                 System.out.println(messageFromClient);
-                        broadcastMessageToAll(messageFromClient);
+                if((messageFromClient.charAt(0)=='d')&&(messageFromClient.charAt(1)=='b'))
+                {
+                    broadcastMessageToAll("np"+thingOfBids[current_thingofbid_num].Name+"  "+thingOfBids[current_thingofbid_num].Description);
+                    current_thingofbid_num++;
+                    if(current_thingofbid_num==thingofbid_num)
+                        closeEverything(socket, bufferedReader, bufferedWriter);
+                }
+                if((messageFromClient.charAt(0)=='c')&&(messageFromClient.charAt(1)=='b'))
+                {
+                    thingOfBids[current_thingofbid_num].sold_price +=100;
+                    broadcastMessageToAll("bi"+"Current bid is: "+String.valueOf(thingOfBids[current_thingofbid_num].sold_price));
+                }
+                broadcastMessageToAll(messageFromClient);
             } catch (IOException e) {
                 // Close everything gracefully.
                 closeEverything(socket, bufferedReader, bufferedWriter);
@@ -95,9 +130,9 @@ public class ClientHandler implements Runnable {
         for (ClientHandler clientHandler : clientHandlers) {
             try {
                 // You don't want to broadcast the message to the user who sent it.
-                    clientHandler.bufferedWriter.write(messageToSend);
-                    clientHandler.bufferedWriter.newLine();
-                    clientHandler.bufferedWriter.flush();
+                clientHandler.bufferedWriter.write(messageToSend);
+                clientHandler.bufferedWriter.newLine();
+                clientHandler.bufferedWriter.flush();
 
             } catch (IOException e) {
                 // Gracefully close everything.
