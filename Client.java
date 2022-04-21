@@ -14,11 +14,13 @@ import static java.awt.Color.black;
 
 public class Client implements ActionListener {
 
+    int counter =0;
     public static int myAmount = 2000;
     String Startbid = new String("m1");
     JFrame client1stFrame = new JFrame();
     JPanel panel1stFrame = new JPanel();
 
+    JProgressBar slideBar = new JProgressBar();
     JLabel bidThingInfo = new JLabel();
     JLabel myInfo = new JLabel();
     JLabel bidInfo = new JLabel();
@@ -95,6 +97,15 @@ public class Client implements ActionListener {
                         {
                             bidInfo.setText(msgFromGroupChat.substring(2));
                         }
+                        if((msgFromGroupChat.charAt(0)=='c')&&(msgFromGroupChat.charAt(1)=='b'))
+                        {
+                            counter=0;
+                            slider();
+                        }
+                        if((msgFromGroupChat.charAt(0)=='d')&&(msgFromGroupChat.charAt(1)=='b'))
+                        {
+                            sendMsgOne("done bid for this player");
+                        }
 
                         System.out.println(msgFromGroupChat);
                     } catch (IOException e) {
@@ -135,6 +146,7 @@ public class Client implements ActionListener {
        panel1stFrame.add(bidThingInfo);
        panel1stFrame.add(bidInfo);
        panel1stFrame.add(buttonClaimbid);
+       panel1stFrame.add(slideBar);
 
         client1stFrame.add(panel1stFrame);
         client1stFrame.setTitle("IIT Auction");
@@ -142,7 +154,7 @@ public class Client implements ActionListener {
         client1stFrame.setResizable(true);
         client1stFrame.setSize(500, 400);
         client1stFrame.getContentPane().setBackground(black);
-        client1stFrame.pack();
+        //client1stFrame.pack();
         client1stFrame.setVisible(true);
 
     }
@@ -174,12 +186,33 @@ public class Client implements ActionListener {
                 client.sendMsgOne("cb");
                 myAmount = myAmount -100;
                 client.myInfo.setText(String.valueOf(client.myAmount));
+                //client.sendMsgOne("cb");
             }
         });
         //client.getResponse();
         //client.sendMessage();
     }
 
+    void slider()
+    {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while (counter<=150)
+                {
+                    slideBar.setValue(counter);
+                    try {
+                        Thread.sleep(50);
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+                    counter = counter+1;
+                }
+                sendMsgOne("db"+String.valueOf(myAmount));
+            }
+        }).start();
+
+    }
     void getResponse()
     {
         while (socket.isConnected())
