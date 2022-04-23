@@ -4,30 +4,31 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.*;
 import java.net.Socket;
+import java.util.InvalidPropertiesFormatException;
 import java.util.Scanner;
 
-import static java.awt.Color.black;
+import static java.awt.Color.*;
 
-// A client sends messages to the server, the server spawns a thread to communicate with the client.
-// Each communication with a client is added to an array list so any message sent gets sent to every other client
-// by looping through it.
+public class Client {
 
-public class Client implements ActionListener {
-
-    int counter =0;
+    static int present_bid =0;
+    static boolean press_bid_button = false;
+    static int counter =0;
     public static int myAmount = 2000;
     String Startbid = new String("m1");
     JFrame client1stFrame = new JFrame();
-    JPanel panel1stFrame = new JPanel();
 
     JProgressBar slideBar = new JProgressBar();
     JLabel bidThingInfo = new JLabel();
     JLabel myInfo = new JLabel();
     JLabel bidInfo = new JLabel();
     JButton buttonClaimbid = new JButton("Claim Bid");
-    JTextField textField1stFrame = new JTextField();
+    JPanel p1 = new JPanel();
+    JPanel p2 = new JPanel();
+    JPanel p3 = new JPanel();
+    JPanel p4 = new JPanel();
+    JPanel p5 = new JPanel();
 
-    // A client has a socket to connect to the server and a reader and writer to receive and send messages respectively.
     private Socket socket;
     private BufferedReader bufferedReader;
     private BufferedWriter bufferedWriter;
@@ -46,7 +47,6 @@ public class Client implements ActionListener {
         }
     }
 
-    // Sending a message isn't blocking and can be done without spawning a thread, unlike waiting for a message.
     public void sendMsgOne(String msgToSend)
     {
         try {
@@ -57,57 +57,50 @@ public class Client implements ActionListener {
             closeEverything(socket, bufferedReader, bufferedWriter);
         }
     }
-    public void sendMessage() {
-        try {
-            // Create a scanner for user input.
-            Scanner scanner = new Scanner(System.in);
-            // While there is still a connection with the server, continue to scan the terminal and then send the message.
-            while (socket.isConnected()) {
-                String messageToSend = scanner.nextLine();
-                bufferedWriter.write(username + ": " + messageToSend);
-                bufferedWriter.newLine();
-                bufferedWriter.flush();
-            }
-        } catch (IOException e) {
-            // Gracefully close everything.
-            closeEverything(socket, bufferedReader, bufferedWriter);
-        }
-    }
 
-    // Listening for a message is blocking so need a separate thread for that.
     public void listenForMessage() {
         new Thread(new Runnable() {
             @Override
             public void run() {
                 String msgFromGroupChat;
-                // While there is still a connection with the server, continue to listen for messages on a separate thread.
+
                 while (socket.isConnected()) {
                     try {
-                        // Get the messages sent from other users and print it to the console.
                         msgFromGroupChat = (String)bufferedReader.readLine();
                         if(msgFromGroupChat.equals(Startbid))
                         {
                             clientPage();
+                            counter = 0;
                             slider();
                         }
                         if((msgFromGroupChat.charAt(0)=='n')&&(msgFromGroupChat.charAt(1)=='p'))
                         {
-                            bidThingInfo.setText(msgFromGroupChat.substring(2));
+                            String tempmsg = msgFromGroupChat;
+                            bidThingInfo.setText("Player Info: "+msgFromGroupChat.substring(2));
+                            present_bid = Integer.parseInt(tempmsg.replaceAll("[^0-9]",""));
+                            press_bid_button = false;
+                            counter=0;
+                            //present_bid = 0;
                         }
+
                         if((msgFromGroupChat.charAt(0)=='b')&&(msgFromGroupChat.charAt(1)=='i'))
                         {
-                            bidInfo.setText(msgFromGroupChat.substring(2));
+                            bidInfo.setText("Current Bid for the player: "+msgFromGroupChat.substring(2));
+                            present_bid = Integer.parseInt(msgFromGroupChat.substring(2));
+                            counter = 0;
                         }
                         if((msgFromGroupChat.charAt(0)=='c')&&(msgFromGroupChat.charAt(1)=='b'))
                         {
+                            press_bid_button= false;
                             counter=0;
                             //slider();
                         }
-                        if((msgFromGroupChat.charAt(0)=='d')&&(msgFromGroupChat.charAt(1)=='b'))
+                        /*if((msgFromGroupChat.charAt(0)=='d')&&(msgFromGroupChat.charAt(1)=='b'))
                         {
-                            sendMsgOne("done bid for this player");
+                            press_bid_button = false;
+                            //sendMsgOne("done bid for this player");
                             counter=0;
-                        }
+                        }*/
 
                         System.out.println(msgFromGroupChat);
                     } catch (IOException e) {
@@ -119,14 +112,7 @@ public class Client implements ActionListener {
         }).start();
     }
 
-    // Helper method to close everything so you don't have to repeat yourself.
     public void closeEverything(Socket socket, BufferedReader bufferedReader, BufferedWriter bufferedWriter) {
-        // Note you only need to close the outer wrapper as the underlying streams are closed when you close the wrapper.
-        // Note you want to close the outermost wrapper so that everything gets flushed.
-        // Note that closing a socket will also close the socket's InputStream and OutputStream.
-        // Closing the input stream closes the socket. You need to use shutdownInput() on socket to just close the input stream.
-        // Closing the socket will also close the socket's input stream and output stream.
-        // Close the socket after closing the streams.
         try {
             if (bufferedReader != null) {
                 bufferedReader.close();
@@ -144,55 +130,83 @@ public class Client implements ActionListener {
 
     public void clientPage()
     {
-        panel1stFrame.add(myInfo);
-        panel1stFrame.add(bidThingInfo);
-        panel1stFrame.add(bidInfo);
-        panel1stFrame.add(buttonClaimbid);
-        panel1stFrame.add(slideBar);
+        myInfo.setFont(new Font("Roboto",Font.PLAIN,18));
+        bidInfo.setFont(new Font("Roboto",Font.PLAIN,18));
+        bidThingInfo.setFont(new Font("Roboto",Font.PLAIN,18));
+        bidInfo.setForeground(white);
+        //myInfo.setSize(200,100);
+        myInfo.setBounds(0,300,400,100);
+        bidThingInfo.setBounds(0,0,400,100);
+        bidInfo.setBounds(0,150,400,100);
 
-        client1stFrame.add(panel1stFrame);
+        buttonClaimbid.setBounds(450,75,100,250);
+
+        slideBar.setBounds(0,300,600,50);
+        slideBar.setSize(600,50);
+        slideBar.setStringPainted(true);
+
+        p1.setBackground(red);
+        p1.setBounds(0,0,600,50);
+        p1.add(bidThingInfo);
+
+        p2.setBackground(blue);
+        p2.setBounds(0,75,300,50);
+        p2.add(bidInfo);
+
+        p3.setBackground(lightGray);
+        p3.setBounds(300,75,300,50);
+        p3.add(myInfo);
+        myInfo.setText(username+" :: Remaining Amount : "+String.valueOf(myAmount));
+
+        p4.setBackground(red);
+        p4.setBounds(0,200,600,50);
+        p4.add(buttonClaimbid);
+
+        p5.setBackground(blue);
+        p5.setBounds(0,300,600,50);
+        p5.add(slideBar);
+
+        client1stFrame.add(p1);
+        client1stFrame.add(p2);
+        client1stFrame.add(p3);
+        client1stFrame.add(p4);
+        client1stFrame.add(p5);
+
         client1stFrame.setTitle("IIT Auction");
         client1stFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        client1stFrame.setResizable(true);
-        client1stFrame.setSize(500, 400);
-        client1stFrame.getContentPane().setBackground(black);
-        //client1stFrame.pack();
+        client1stFrame.setLayout(null);
+        client1stFrame.setSize(600, 400);
         client1stFrame.setVisible(true);
 
     }
-    public void startClient(String username1) throws IOException {
 
-    }
-    // Run the program.
     public static void main(String[] args) throws IOException {
 
-        // Get a username for the user and a socket connection.
-        //Scanner scanner = new Scanner(System.in);
-        //System.out.print("Enter your username for the group chat: ");
-        //String username = scanner.nextLine();
         String username = JOptionPane.showInputDialog(null,"Enter the name of your team","Your team name here");
-        // Create a socket to connect to the server.
-        Socket socket = new Socket("localhost", 1234);
+        String password = JOptionPane.showInputDialog(null,"Enter the password");
+        if(!password.equals("iit123"))
+        {
+            throw new InvalidPropertiesFormatException("Passswoed is not correct");
+        }
+        else {
+            Socket socket = new Socket("localhost", 1234);
 
-        // Pass the socket and give the client a username.
-        Client client = new Client(socket, username);
-        JOptionPane.showMessageDialog(null,"Please wait, the host will start auction shortly!","Information",JOptionPane.PLAIN_MESSAGE);
+            Client client = new Client(socket, username);
+            JOptionPane.showMessageDialog(null, "Please wait, the host will start auction shortly!", "Information", JOptionPane.PLAIN_MESSAGE);
 
-        client.sendMsgOne(username);
+            client.sendMsgOne(username);
 
-        // Infinite loop to read and send messages.
-        client.listenForMessage();
-        client.buttonClaimbid.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                client.sendMsgOne("cb");
-                myAmount = myAmount -100;
-                client.myInfo.setText(String.valueOf(client.myAmount));
-                //client.sendMsgOne("cb");
-            }
-        });
-        //client.getResponse();
-        //client.sendMessage();
+            client.listenForMessage();
+            client.buttonClaimbid.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    client.sendMsgOne("cb" + username + " Placed bid at " + String.valueOf(present_bid));
+                    press_bid_button = true;
+                    System.out.println("Pressed bid and now " + press_bid_button);
+                    counter = 0;
+                }
+            });
+        }
     }
 
     void slider()
@@ -214,28 +228,22 @@ public class Client implements ActionListener {
                     }
                     if(counter==151)
                     {
-                        sendMsgOne("db"+String.valueOf(myAmount));
-                        counter=-1;
+                        System.out.println(username+":  counter in 151 and button "+press_bid_button);
+                        if(press_bid_button)
+                        {
+                            sendMsgOne("db"+username+" "+String.valueOf(present_bid));
+                            myAmount = myAmount -present_bid;
+                            myInfo.setText(username+" :: Remaining Amount : "+String.valueOf(myAmount));
+                            counter=0;
+                        }
+
                     }
 
                 }
             }
         }).start();
-        //
+
     }
 
-    void getResponse()
-    {
-        while (socket.isConnected())
-        {
-            buttonClaimbid.addActionListener(this);
-        }
-    }
-    @Override
-    public void actionPerformed(ActionEvent e) {
-        /*if(e.getSource()==buttonClaimbid)
-        {
-            sendMsgOne("cb");
-        }*/
-    }
 }
+

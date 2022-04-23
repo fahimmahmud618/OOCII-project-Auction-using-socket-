@@ -50,14 +50,7 @@ public class Server implements ActionListener {
                 team_count++;
                 label1Txt = String.valueOf(team_count)+" Team Leader joined the Auction!";
                 label1.setText(label1Txt);
-                //System.out.println("A new client has connected!");
                 sockets.add(socket);
-                //ClientHandler clientHandler = new ClientHandler(socket);
-                // Thread thread = new Thread(clientHandler);
-                // The start method begins the execution of a thread.
-                // When you call start() the run method is called.
-                // The operating system schedules the threads.
-                // thread.start();
                 if(start_bid)
                     break;
             }
@@ -77,7 +70,6 @@ public class Server implements ActionListener {
         new ClientHandler().broadcastMessageToAll("m1");
     }
 
-    // Close the server socket gracefully.
     public void closeServerSocket() {
         try {
             if (serverSocket != null) {
@@ -88,7 +80,6 @@ public class Server implements ActionListener {
         }
     }
 
-    // Run the program.
     public static void main(String[] args) throws IOException {
         ServerSocket serverSocket = new ServerSocket(1234);
         Server server = new Server(serverSocket);
@@ -100,6 +91,7 @@ public class Server implements ActionListener {
         if(e.getSource()==button)
         {
             Start_bid();
+            server1stframe.dispose();
         }
     }
 }
